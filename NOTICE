@@ -1,0 +1,14 @@
+Peperouny — third-party attribution
+
+This project includes modified portions of Pantegnos:
+https://github.com/FrontierTM/Pantegnos
+Copyright (c) FrontierTM and respective contributors.
+
+The upstream project is licensed under GNU Affero General Public License version 3.0.
+The applicable license text is included in LICENSE. Source files derived from upstream
+retain their notices and are identified in this repository's history.
+
+Peperouny changes include the project/module namespace, a focused NPVT/NPVS web
+entrypoint, and an independently designed browser interface.
+
+Peperouny is not endorsed by FrontierTM. Its name, logo, and interface are independent.

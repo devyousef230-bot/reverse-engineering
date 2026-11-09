@@ -1,0 +1,52 @@
+package impl
+
+import (
+	"bytes"
+	"testing"
+
+	"crypto/sha256"
+
+	"golang.org/x/crypto/pbkdf2"
+)
+
+func TestCustomPBKDF2MatchesStdlib(t *testing.T) {
+	tests := []struct {
+		name  string
+		pass  string
+		salt  []byte
+		iters int
+		dkLen int
+	}{
+		{"one block", "hunter2", []byte("fixed-salt-value"), 2, 32},
+		{"two blocks", "hunter2", []byte("fixed-salt-value"), 3, 64},
+		{"short key", "x", []byte{0, 1, 2, 3}, 5, 16},
+	}
+
+	for _, tt := range tests {
+		got := customPBKDF2HmacSha256([]byte(tt.pass), tt.salt, tt.iters, tt.dkLen)
+		want := pbkdf2.Key([]byte(tt.pass), tt.salt, tt.iters, tt.dkLen, sha256.New)
+		if !bytes.Equal(got, want) {
+			t.Errorf("%s: customPBKDF2HmacSha256 mismatch", tt.name)
+		}
+	}
+}
+
+func TestCustodianKDKBothGenerations(t *testing.T) {
+	salt := []byte{0x84, 0x3c, 0xc2, 0xc9, 0x01, 0xce, 0x91, 0x51, 0x6c, 0x38, 0xcc, 0x66, 0x05, 0xb9, 0x2e, 0x47}
+	kdks := custodianKDKs(salt)
+	if len(kdks) != 2 {
+		t.Fatalf("expected 2 candidate KDKs, got %d", len(kdks))
+	}
+	want := [][32]byte{
+		{0xa9, 0xc9, 0x05, 0x8d, 0xca, 0x50, 0xd1, 0x78, 0xb6, 0x4e, 0x03, 0x18, 0xad, 0x53, 0x62, 0xbe, 0x8f, 0x8d, 0x41, 0x03, 0xdc, 0x83, 0xce, 0x2b, 0xd0, 0xcc, 0xd7, 0xe4, 0x04, 0x58, 0x4e, 0x3d},
+		{0x43, 0x8a, 0x04, 0xb5, 0x21, 0xa5, 0x95, 0x21, 0x56, 0x44, 0x1a, 0x76, 0xbe, 0xe5, 0xd8, 0x37, 0x7a, 0x67, 0x25, 0x7f, 0xf7, 0xe8, 0x29, 0x1b, 0x22, 0x00, 0x23, 0x61, 0x4d, 0x79, 0x33, 0xd5},
+	}
+	for i, want := range want {
+		got := kdks[i]
+		for j := range 32 {
+			if got[j] != want[j] {
+				t.Fatalf("kdk %d byte %d: got %02x want %02x", i, j, got[j], want[j])
+			}
+		}
+	}
+}

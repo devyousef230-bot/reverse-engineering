@@ -1,0 +1,7 @@
+/dist/
+/bin/
+*.wasm
+wasm_exec.js
+.DS_Store
+.idea/
+.vscode/
